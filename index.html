@@ -1,0 +1,2261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>dotBo — BOT Chain Name Service</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:    #050B18;
+  --navy2:   #0B1628;
+  --slate:   #1A2642;
+  --slate2:  #243050;
+  --blue:    #0D6EFD;
+  --cyan:    #00E5FF;
+  --text:    #E8EDF5;
+  --muted:   #7A8BA8;
+  --red:     #FF4D6D;
+  --green:   #00E5A0;
+  --border:  rgba(0,229,255,.12);
+  --glow:    0 0 32px rgba(0,229,255,.18);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--navy);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 48px;
+  background: rgba(5,11,24,.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.3rem; font-weight: 700; letter-spacing: -.02em;
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.nav-logo span { -webkit-text-fill-color: var(--muted); font-weight: 400; }
+.nav-links { display: flex; gap: 32px; align-items: center; }
+.nav-links a {
+  color: var(--muted); text-decoration: none; font-size: .9rem;
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--text); }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 22px; border-radius: 6px; font-size: .9rem;
+  font-family: 'Space Grotesk', sans-serif; font-weight: 600;
+  cursor: pointer; border: none; text-decoration: none; transition: all .2s;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  color: var(--navy); letter-spacing: .01em;
+}
+.btn-primary:hover { opacity: .88; transform: translateY(-1px); box-shadow: var(--glow); }
+.btn-ghost {
+  background: transparent; color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { border-color: var(--cyan); color: var(--cyan); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-sm { padding: 7px 16px; font-size: .82rem; }
+
+/* ── PAGE VIEWS ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── LANDING ── */
+#landing { padding-top: 80px; }
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: grid; grid-template-columns: 1fr 1fr;
+  align-items: center; gap: 48px;
+  padding: 80px 48px 48px;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 60% at 70% 50%, rgba(13,110,253,.14) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 20% 80%, rgba(0,229,255,.07) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.hero-text { position: relative; z-index: 2; }
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'Space Mono', monospace; font-size: .78rem;
+  color: var(--cyan); letter-spacing: .1em; margin-bottom: 28px;
+}
+.hero-eyebrow::before {
+  content: ''; width: 28px; height: 1px; background: var(--cyan);
+}
+h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2.6rem, 5vw, 4.2rem);
+  font-weight: 700; line-height: 1.08; letter-spacing: -.04em;
+  margin-bottom: 24px;
+}
+h1 .accent {
+  background: linear-gradient(135deg, var(--blue) 0%, var(--cyan) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero-sub {
+  color: var(--muted); font-size: 1.1rem; max-width: 44ch;
+  line-height: 1.7; margin-bottom: 40px;
+}
+.hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+.hero-stats { display: flex; gap: 36px; margin-top: 52px; }
+.stat-item { }
+.stat-num {
+  font-family: 'Space Grotesk', sans-serif; font-size: 1.8rem;
+  font-weight: 700; color: var(--text);
+}
+.stat-label { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+
+/* ORBS / VISUAL */
+.hero-visual {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; justify-content: center;
+  height: 480px;
+}
+.orb-wrap {
+  position: relative; width: 320px; height: 320px;
+}
+.orb-core {
+  position: absolute; inset: 50%; transform: translate(-50%,-50%);
+  width: 140px; height: 140px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #1a6fff, #003399);
+  box-shadow: 0 0 60px rgba(13,110,253,.5), 0 0 120px rgba(0,229,255,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem;
+  font-weight: 700; color: #fff;
+}
+.ring {
+  position: absolute; border-radius: 50%; border: 1px solid;
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  animation: pulse-ring 3s ease-in-out infinite;
+}
+.ring1 { width: 180px; height: 180px; border-color: rgba(13,110,253,.5); animation-delay: 0s; }
+.ring2 { width: 240px; height: 240px; border-color: rgba(0,229,255,.3); animation-delay: .6s; }
+.ring3 { width: 300px; height: 300px; border-color: rgba(0,229,255,.15); animation-delay: 1.2s; }
+@keyframes pulse-ring {
+  0%,100% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+  50% { opacity: .4; transform: translate(-50%,-50%) scale(1.04); }
+}
+
+/* floating name tags */
+.float-tag {
+  position: absolute;
+  background: var(--slate); border: 1px solid var(--border);
+  border-left: 2px solid var(--cyan);
+  padding: 10px 16px; border-radius: 8px;
+  font-family: 'Space Mono', monospace; font-size: .82rem; color: var(--text);
+  white-space: nowrap;
+  animation: float 4s ease-in-out infinite;
+}
+.ft1 { top: 30px; left: -20px; animation-delay: 0s; }
+.ft2 { bottom: 60px; left: -40px; animation-delay: 1.5s; }
+.ft3 { top: 60px; right: -30px; animation-delay: .8s; }
+.ft4 { bottom: 30px; right: -10px; animation-delay: 2.2s; }
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.ft-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); margin-right: 8px; }
+
+/* SEARCH BAR */
+.search-section {
+  padding: 0 48px 80px;
+  display: flex; justify-content: center;
+}
+.search-box {
+  width: 100%; max-width: 640px;
+  background: var(--slate); border: 1px solid var(--border);
+  border-radius: 12px; padding: 6px 6px 6px 20px;
+  display: flex; align-items: center; gap: 12px;
+}
+.search-box input {
+  flex: 1; background: none; border: none; outline: none;
+  font-family: 'Space Mono', monospace; font-size: 1rem; color: var(--text);
+}
+.search-box input::placeholder { color: var(--muted); }
+.search-suffix {
+  color: var(--cyan); font-family: 'Space Mono', monospace;
+  font-size: 1rem; padding-right: 8px;
+}
+#search-result {
+  margin-top: 16px; text-align: center;
+  font-family: 'Space Mono', monospace; font-size: .88rem;
+}
+.available { color: var(--green); }
+.taken { color: var(--red); }
+
+/* FEATURES */
+.features {
+  padding: 80px 48px;
+  border-top: 1px solid var(--border);
+}
+.section-label {
+  font-family: 'Space Mono', monospace; font-size: .75rem;
+  color: var(--cyan); letter-spacing: .1em; margin-bottom: 48px;
+}
+.features-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 1px;
+  background: var(--border); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+}
+.feature-card {
+  background: var(--navy2); padding: 36px 32px;
+  transition: background .2s;
+}
+.feature-card:hover { background: var(--slate); }
+.feat-icon {
+  font-size: 1.6rem; margin-bottom: 20px;
+}
+.feat-title {
+  font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem;
+  font-weight: 600; margin-bottom: 10px;
+}
+.feat-desc { color: var(--muted); font-size: .9rem; line-height: 1.65; }
+
+/* HOW IT WORKS */
+.how { padding: 80px 48px; }
+.how-steps { display: grid; grid-template-columns: repeat(4,1fr); gap: 24px; margin-top: 48px; }
+.step {
+  position: relative;
+}
+.step::after {
+  content: '→'; position: absolute; top: 16px; right: -16px;
+  color: var(--border); font-size: 1.2rem;
+}
+.step:last-child::after { display: none; }
+.step-num {
+  font-family: 'Space Mono', monospace; font-size: .75rem;
+  color: var(--cyan); margin-bottom: 16px;
+}
+.step-title {
+  font-family: 'Space Grotesk', sans-serif; font-weight: 600;
+  margin-bottom: 10px;
+}
+.step-desc { color: var(--muted); font-size: .88rem; line-height: 1.65; }
+
+/* ── MODAL / REGISTER ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(5,11,24,.85); backdrop-filter: blur(8px);
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--navy2); border: 1px solid var(--border);
+  border-radius: 16px; width: 480px; max-width: 95vw; padding: 36px;
+  box-shadow: var(--glow);
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 28px;
+}
+.modal-title {
+  font-family: 'Space Grotesk', sans-serif; font-size: 1.3rem; font-weight: 700;
+}
+.modal-close {
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font-size: 1.4rem; line-height: 1; padding: 4px;
+}
+.modal-close:hover { color: var(--text); }
+.field { margin-bottom: 20px; }
+.field label {
+  display: block; font-size: .82rem; color: var(--muted);
+  margin-bottom: 8px; font-family: 'Space Mono', monospace;
+}
+.field input, .field select, .field textarea {
+  width: 100%; background: var(--slate); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 16px;
+  color: var(--text); font-family: 'Space Mono', monospace; font-size: .88rem;
+  outline: none; transition: border-color .2s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--cyan);
+}
+.field textarea { resize: vertical; min-height: 80px; }
+.name-input-wrap {
+  display: flex; align-items: center;
+  background: var(--slate); border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden;
+}
+.name-input-wrap:focus-within { border-color: var(--cyan); }
+.name-input-wrap input {
+  background: none; border: none; border-radius: 0; flex: 1;
+}
+.name-suffix-fixed {
+  padding: 12px 16px; color: var(--cyan);
+  font-family: 'Space Mono', monospace; font-size: .88rem;
+  border-left: 1px solid var(--border);
+}
+.register-steps {
+  display: flex; gap: 0; margin-bottom: 28px;
+}
+.rstep {
+  flex: 1; text-align: center; padding: 10px;
+  border-bottom: 2px solid var(--border);
+  font-size: .78rem; color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  transition: all .2s;
+}
+.rstep.active { border-color: var(--cyan); color: var(--cyan); }
+.rstep.done { border-color: var(--green); color: var(--green); }
+.step-panel { display: none; }
+.step-panel.active { display: block; }
+
+/* ── DASHBOARD ── */
+#dashboard { padding-top: 80px; min-height: 100vh; }
+.dash-wrap {
+  display: grid; grid-template-columns: 320px 1fr;
+  gap: 0; min-height: calc(100vh - 80px);
+}
+/* Sidebar */
+.sidebar {
+  background: var(--navy2); border-right: 1px solid var(--border);
+  padding: 32px 24px; position: sticky; top: 80px; height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+.id-card {
+  background: var(--slate); border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px; margin-bottom: 24px;
+  position: relative; overflow: hidden;
+}
+.id-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--blue), var(--cyan));
+}
+.id-avatar {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Grotesk', sans-serif; font-weight: 700;
+  font-size: 1.4rem; color: var(--navy); margin-bottom: 16px;
+}
+.id-name {
+  font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem;
+  font-weight: 700; color: var(--text); margin-bottom: 4px;
+}
+.id-addr {
+  font-family: 'Space Mono', monospace; font-size: .72rem;
+  color: var(--muted);
+}
+.id-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 12px; background: rgba(0,229,160,.12);
+  border: 1px solid rgba(0,229,160,.25); border-radius: 20px;
+  padding: 4px 12px; font-size: .75rem; color: var(--green);
+  font-family: 'Space Mono', monospace;
+}
+.id-badge::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+.sidebar-section { margin-bottom: 24px; }
+.sidebar-section-label {
+  font-family: 'Space Mono', monospace; font-size: .68rem;
+  color: var(--muted); letter-spacing: .08em; margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.sidebar-nav a {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: 8px; color: var(--muted);
+  text-decoration: none; font-size: .9rem; transition: all .2s;
+  margin-bottom: 2px;
+}
+.sidebar-nav a:hover, .sidebar-nav a.active {
+  background: var(--slate2); color: var(--text);
+}
+.sidebar-nav a.active { color: var(--cyan); }
+.nav-icon { width: 18px; text-align: center; font-size: .95rem; }
+
+.record-pill {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+  font-size: .85rem;
+}
+.record-pill:last-child { border-bottom: none; }
+.record-key { color: var(--muted); font-family: 'Space Mono', monospace; font-size: .75rem; }
+.record-val { color: var(--text); font-size: .82rem; }
+
+/* Main panel */
+.dash-main { padding: 32px 40px; }
+.panel-title {
+  font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem;
+  font-weight: 700; margin-bottom: 8px;
+}
+.panel-sub { color: var(--muted); font-size: .9rem; margin-bottom: 32px; }
+
+/* Name card (big interactive card) */
+.name-card {
+  background: var(--navy2); border: 1px solid var(--border);
+  border-radius: 16px; padding: 32px; margin-bottom: 28px;
+  position: relative; overflow: hidden;
+}
+.name-card-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 80% at 100% 0%, rgba(13,110,253,.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+.name-card-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 24px; position: relative; z-index: 1;
+}
+.name-card-main {
+  font-family: 'Space Grotesk', sans-serif; font-size: 2rem;
+  font-weight: 700; letter-spacing: -.03em;
+}
+.name-card-main .dot-bot {
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.name-card-expiry {
+  font-size: .8rem; color: var(--muted); margin-top: 4px;
+  font-family: 'Space Mono', monospace;
+}
+.name-card-actions { display: flex; gap: 10px; }
+
+.nc-meta {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  position: relative; z-index: 1;
+}
+.nc-meta-item {
+  background: var(--slate); border-radius: 10px; padding: 16px 18px;
+}
+.nc-meta-label { font-size: .72rem; color: var(--muted); font-family: 'Space Mono', monospace; margin-bottom: 6px; }
+.nc-meta-val { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: .95rem; }
+
+/* Records table */
+.records-section { margin-bottom: 28px; }
+.records-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+}
+.section-title {
+  font-family: 'Space Grotesk', sans-serif; font-size: 1.05rem; font-weight: 600;
+}
+.records-table {
+  width: 100%; border-collapse: collapse;
+  font-size: .88rem;
+}
+.records-table th {
+  text-align: left; padding: 10px 14px;
+  font-family: 'Space Mono', monospace; font-size: .72rem;
+  color: var(--muted); letter-spacing: .05em;
+  border-bottom: 1px solid var(--border);
+  background: var(--navy2);
+}
+.records-table td {
+  padding: 13px 14px; border-bottom: 1px solid var(--border);
+  color: var(--text); font-family: 'Space Mono', monospace; font-size: .82rem;
+}
+.records-table tr:hover td { background: rgba(26,38,66,.5); }
+.records-table tr:last-child td { border-bottom: none; }
+.record-type-badge {
+  display: inline-block; padding: 2px 10px; border-radius: 4px;
+  font-size: .7rem; font-weight: 600;
+}
+.rt-addr { background: rgba(13,110,253,.15); color: #60a5fa; }
+.rt-text { background: rgba(0,229,160,.12); color: var(--green); }
+.rt-url  { background: rgba(168,85,247,.15); color: #c084fc; }
+.edit-btn {
+  background: none; border: 1px solid var(--border); border-radius: 4px;
+  padding: 4px 10px; color: var(--muted); font-size: .75rem;
+  cursor: pointer; font-family: 'Space Mono', monospace;
+  transition: all .2s;
+}
+.edit-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* Activity */
+.activity-list { }
+.activity-item {
+  display: flex; gap: 14px; padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.activity-item:last-child { border-bottom: none; }
+.act-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  margin-top: 6px; flex-shrink: 0;
+}
+.act-dot.blue { background: var(--blue); }
+.act-dot.green { background: var(--green); }
+.act-dot.red { background: var(--red); }
+.act-content { flex: 1; }
+.act-action { font-size: .88rem; color: var(--text); }
+.act-time { font-size: .75rem; color: var(--muted); font-family: 'Space Mono', monospace; margin-top: 2px; }
+.act-tx {
+  font-family: 'Space Mono', monospace; font-size: .75rem;
+  color: var(--cyan); text-decoration: none;
+}
+.act-tx:hover { text-decoration: underline; }
+
+/* Resolve panel */
+.resolve-box {
+  background: var(--navy2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px; margin-bottom: 28px;
+}
+.resolve-input-wrap {
+  display: flex; gap: 10px; margin-top: 14px;
+}
+.resolve-input-wrap input {
+  flex: 1; background: var(--slate); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px;
+  color: var(--text); font-family: 'Space Mono', monospace;
+  font-size: .88rem; outline: none;
+}
+.resolve-input-wrap input:focus { border-color: var(--cyan); }
+.resolve-result {
+  margin-top: 14px; padding: 12px 16px;
+  background: var(--slate); border-radius: 8px;
+  font-family: 'Space Mono', monospace; font-size: .85rem;
+  display: none;
+}
+.resolve-result.show { display: block; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 32px; right: 32px; z-index: 999;
+  background: var(--slate); border: 1px solid var(--border);
+  border-left: 3px solid var(--cyan); border-radius: 8px;
+  padding: 14px 20px; font-size: .88rem;
+  transform: translateX(120%); transition: transform .3s ease;
+  max-width: 320px; box-shadow: var(--glow);
+}
+.toast.show { transform: translateX(0); }
+.toast.error { border-left-color: var(--red); }
+.toast.success { border-left-color: var(--green); }
+
+/* Footer */
+footer {
+  border-top: 1px solid var(--border); padding: 32px 48px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.footer-logo {
+  font-family: 'Space Grotesk', sans-serif; font-weight: 700;
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.footer-links { display: flex; gap: 24px; }
+.footer-links a { color: var(--muted); text-decoration: none; font-size: .85rem; }
+.footer-links a:hover { color: var(--text); }
+.footer-copy { color: var(--muted); font-size: .8rem; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  nav { padding: 16px 20px; }
+  .hero { grid-template-columns: 1fr; padding: 60px 20px 40px; }
+  .hero-visual { display: none; }
+  .features-grid, .how-steps { grid-template-columns: 1fr 1fr; }
+  .search-section, .features, .how { padding-left: 20px; padding-right: 20px; }
+  .dash-wrap { grid-template-columns: 1fr; }
+  .sidebar { position: static; height: auto; }
+  .dash-main { padding: 24px 20px; }
+  .nc-meta { grid-template-columns: 1fr 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ring { animation: none; }
+  .float-tag { animation: none; }
+}
+
+/* Utility */
+.flex-row { display: flex; align-items: center; gap: 12px; }
+.mt-auto { margin-top: auto; }
+.text-muted { color: var(--muted); }
+.mono { font-family: 'Space Mono', monospace; }
+.hidden { display: none !important; }
+
+/* Dash tabs */
+.dash-tab-content { display: none; }
+.dash-tab-content.active { display: block; }
+
+/* Warning / danger box */
+.warn-box {
+  background: rgba(255,77,109,.08); border: 1px solid rgba(255,77,109,.25);
+  border-radius: 10px; padding: 14px 18px; margin-bottom: 20px;
+  font-size: .85rem; color: #ffb3c0; line-height: 1.6;
+}
+.warn-box strong { color: var(--red); }
+.info-box {
+  background: rgba(0,229,255,.06); border: 1px solid rgba(0,229,255,.18);
+  border-radius: 10px; padding: 14px 18px; margin-bottom: 20px;
+  font-size: .85rem; color: #a0d8ef; line-height: 1.6;
+}
+
+/* Renew price bar */
+.price-bar {
+  background: var(--slate); border-radius: 10px; padding: 18px 20px;
+  margin-bottom: 20px;
+}
+.price-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; border-bottom: 1px solid var(--border);
+}
+.price-row:last-child { border-bottom: none; padding-top: 10px; margin-top: 4px; }
+.price-row .label { color: var(--muted); font-size: .85rem; }
+.price-row .val { font-family: 'Space Mono', monospace; font-size: .88rem; }
+.price-row.total .val { color: var(--cyan); font-size: 1rem; font-weight: 700; }
+
+/* Duration pills */
+.dur-pills { display: flex; gap: 10px; margin-bottom: 20px; }
+.dur-pill {
+  flex: 1; padding: 10px 8px; text-align: center;
+  background: var(--slate); border: 1px solid var(--border);
+  border-radius: 8px; cursor: pointer; font-size: .82rem;
+  font-family: 'Space Mono', monospace; transition: all .18s;
+}
+.dur-pill:hover { border-color: var(--cyan); color: var(--cyan); }
+.dur-pill.selected { border-color: var(--cyan); background: rgba(0,229,255,.08); color: var(--cyan); }
+.dur-pill .price { display: block; font-size: .72rem; color: var(--muted); margin-top: 4px; }
+.dur-pill.selected .price { color: var(--cyan); opacity: .7; }
+
+/* Edit tabs */
+.edit-tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+.edit-tab {
+  padding: 10px 18px; background: none; border: none; border-bottom: 2px solid transparent;
+  color: var(--muted); cursor: pointer; font-family: 'Space Grotesk', sans-serif;
+  font-size: .88rem; font-weight: 500; margin-bottom: -1px; transition: all .18s;
+}
+.edit-tab:hover { color: var(--text); }
+.edit-tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+.edit-panel { display: none; }
+.edit-panel.active { display: block; }
+
+/* Transfer confirm input */
+.confirm-type-box {
+  background: var(--slate); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 14px;
+  font-family: 'Space Mono', monospace; font-size: .82rem; color: var(--muted);
+  margin-bottom: 14px; line-height: 1.6;
+}
+.confirm-type-box strong { color: var(--red); }
+
+/* Countdown bar */
+.countdown-bar-wrap {
+  background: var(--slate); border-radius: 6px; height: 6px; overflow: hidden; margin: 10px 0 6px;
+}
+.countdown-bar {
+  height: 100%; background: linear-gradient(90deg, var(--blue), var(--cyan));
+  width: 100%; transition: width .5s linear;
+}
+.countdown-label {
+  font-family: 'Space Mono', monospace; font-size: .75rem; color: var(--muted); text-align: right;
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="nav-logo">dotBo</div>
+  <div class="nav-links" id="nav-links">
+    <a href="#" onclick="showLanding()">Home</a>
+    <a href="#features-section">Features</a>
+    <a href="#">Docs</a>
+    <button class="btn btn-primary btn-sm" id="nav-connect-btn" onclick="connectWallet()">Connect Wallet</button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════
+     LANDING
+════════════════════════════════════ -->
+<div id="landing" class="page active">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-text">
+      <div class="hero-eyebrow">dotBo — BOT Chain Name Service</div>
+      <h1>Your identity,<br><span class="accent">onchain.</span><br>Yours forever.</h1>
+      <p class="hero-sub">Register a human-readable <strong style="color:var(--text)">.bot</strong> name and map it to your wallet, socials, contracts, and anything else you put onchain.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" onclick="openRegister()">Claim your .bot name</button>
+        <button class="btn btn-ghost" onclick="goToDashboard()">View Dashboard</button>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <div class="stat-num">12,480</div>
+          <div class="stat-label">Names registered</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">4,210</div>
+          <div class="stat-label">Unique owners</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">∞</div>
+          <div class="stat-label">Subnames possible</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="orb-wrap">
+        <div class="ring ring1"></div>
+        <div class="ring ring2"></div>
+        <div class="ring ring3"></div>
+        <div class="orb-core">.bot</div>
+        <div class="float-tag ft1"><span class="ft-dot"></span>vitalik.bot</div>
+        <div class="float-tag ft2"><span class="ft-dot"></span>alice.bot</div>
+        <div class="float-tag ft3"><span class="ft-dot"></span>jerydam.bot</div>
+        <div class="float-tag ft4"><span class="ft-dot"></span>defi.bot</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEARCH -->
+  <section class="search-section">
+    <div style="width:100%;max-width:640px;">
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Search for your name" oninput="checkName(this.value)">
+        <span class="search-suffix">.bot</span>
+        <button class="btn btn-primary btn-sm" onclick="checkName(document.getElementById('search-input').value)">Search</button>
+      </div>
+      <div id="search-result"></div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features-section">
+    <div class="section-label">WHAT YOU GET</div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feat-icon">🔗</div>
+        <div class="feat-title">Universal Resolver</div>
+        <p class="feat-desc">Map your .bot name to a wallet address, smart contract, IPFS hash, or any onchain entity. One name, infinite resolution.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon">📋</div>
+        <div class="feat-title">Rich Onchain Records</div>
+        <p class="feat-desc">Store your Twitter, GitHub, email, bio, and custom key-value pairs directly onchain — your verifiable profile.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon">🌿</div>
+        <div class="feat-title">Subname Issuance</div>
+        <p class="feat-desc">Own myproject.bot? Issue team.myproject.bot to collaborators. Build hierarchical identities for your protocol or community.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon">⛓️</div>
+        <div class="feat-title">Native to BOT Chain</div>
+        <p class="feat-desc">Zero gas surprises. Contracts live on BOT Chain with fast finality. No bridge, no overhead.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon">🔐</div>
+        <div class="feat-title">Full Ownership</div>
+        <p class="feat-desc">Your name is an NFT. Transfer, sell, or delegate — the registry enforces your ownership without a middleman.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon">🕐</div>
+        <div class="feat-title">Renewable Leases</div>
+        <p class="feat-desc">Names are leased annually. Renew anytime before expiry. Expired names re-enter the open market after a grace period.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how">
+    <div class="section-label">HOW IT WORKS</div>
+    <div class="how-steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-title">Search your name</div>
+        <p class="step-desc">Type what you want and check real-time availability on the registry contract.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-title">Connect & commit</div>
+        <p class="step-desc">Connect your wallet. A commit hash is submitted first to prevent front-running.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-title">Register onchain</div>
+        <p class="step-desc">After the commit window, finalize registration. Pay the annual fee in native BOT.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-title">Set your records</div>
+        <p class="step-desc">Map your address, add profile records, and start using your .bot name across the ecosystem.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">dotBo</div>
+    <div class="footer-links">
+      <a href="#">GitHub</a>
+      <a href="#">Docs</a>
+      <a href="#">Discord</a>
+      <a href="#">Blog</a>
+    </div>
+    <div class="footer-copy">© 2026 dotBo Registry</div>
+  </footer>
+</div>
+
+
+<!-- ═══════════════════════════════════
+     DASHBOARD
+════════════════════════════════════ -->
+<div id="dashboard" class="page">
+  <div class="dash-wrap">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="id-card">
+        <div class="id-avatar" id="dash-avatar">J</div>
+        <div class="id-name" id="dash-name">jerydam.bot</div>
+        <div class="id-addr" id="dash-addr">0x742d...8A4f</div>
+        <span class="id-badge">Active</span>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Navigate</div>
+        <nav class="sidebar-nav">
+          <a href="#" class="active" onclick="switchTab('overview',this)">
+            <span class="nav-icon">◈</span> Overview
+          </a>
+          <a href="#" onclick="switchTab('records',this)">
+            <span class="nav-icon">≡</span> Records
+          </a>
+          <a href="#" onclick="switchTab('resolve',this)">
+            <span class="nav-icon">⌖</span> Resolve
+          </a>
+          <a href="#" onclick="switchTab('activity',this)">
+            <span class="nav-icon">⌛</span> Activity
+          </a>
+          <a href="#" onclick="showLanding()">
+            <span class="nav-icon">←</span> Back to home
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Quick Records</div>
+        <div class="record-pill">
+          <span class="record-key">eth.addr</span>
+          <span class="record-val">0x742d...8A4f</span>
+        </div>
+        <div class="record-pill">
+          <span class="record-key">github</span>
+          <span class="record-val">jerydam</span>
+        </div>
+        <div class="record-pill">
+          <span class="record-key">twitter</span>
+          <span class="record-val">@jerydam_</span>
+        </div>
+        <div class="record-pill">
+          <span class="record-key">expires</span>
+          <span class="record-val" style="color:var(--green)">Oct 2027</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="dash-main">
+
+      <!-- OVERVIEW TAB -->
+      <div class="dash-tab-content active" id="tab-overview">
+        <div class="panel-title">Your .bot Identity</div>
+        <p class="panel-sub">Manage your name, records, and onchain presence from one place.</p>
+
+        <!-- Big name card -->
+        <div class="name-card">
+          <div class="name-card-bg"></div>
+          <div class="name-card-header">
+            <div>
+              <div class="name-card-main" id="nc-name">jerydam<span class="dot-bot">.bot</span></div>
+              <div class="name-card-expiry">Expires Oct 31, 2027 · 365 days remaining</div>
+            </div>
+            <div class="name-card-actions">
+              <button class="btn btn-ghost btn-sm" onclick="openEdit()">✏ Edit Details</button>
+              <button class="btn btn-ghost btn-sm" onclick="openRenew()">↻ Renew</button>
+              <button class="btn btn-primary btn-sm" onclick="openTransfer()">⇄ Transfer</button>
+            </div>
+          </div>
+          <div class="nc-meta">
+            <div class="nc-meta-item">
+              <div class="nc-meta-label">RESOLVER</div>
+              <div class="nc-meta-val" style="font-size:.78rem; color:var(--cyan)">0xAbcd...1234</div>
+            </div>
+            <div class="nc-meta-item">
+              <div class="nc-meta-label">RECORDS</div>
+              <div class="nc-meta-val">7 set</div>
+            </div>
+            <div class="nc-meta-item">
+              <div class="nc-meta-label">SUBNAMES</div>
+              <div class="nc-meta-val">2 issued</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Set primary address -->
+        <div class="resolve-box">
+          <div class="section-title">Primary Wallet Address</div>
+          <p style="color:var(--muted);font-size:.85rem;margin-top:6px;">This address is returned when anyone resolves <strong style="color:var(--text)">jerydam.bot</strong></p>
+          <div class="resolve-input-wrap">
+            <input type="text" id="primary-addr-input" value="0x742d35Cc6634C0532925a3b844Bc454e4438f44e" placeholder="0x...">
+            <button class="btn btn-primary btn-sm" onclick="savePrimaryAddr()">Save Address</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECORDS TAB -->
+      <div class="dash-tab-content" id="tab-records">
+        <div class="panel-title">Onchain Records</div>
+        <p class="panel-sub">These key-value records are stored on the resolver contract and readable by any dapp.</p>
+        <div class="records-section">
+          <div class="records-header">
+            <div class="section-title">All Records</div>
+            <button class="btn btn-primary btn-sm" onclick="openAddRecord()">+ Add Record</button>
+          </div>
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>Key</th>
+                <th>Value</th>
+                <th>Type</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="records-tbody">
+              <tr>
+                <td>eth.addr</td>
+                <td>0x742d35Cc6634C0532925a3b844Bc454e4438f44e</td>
+                <td><span class="record-type-badge rt-addr">ADDRESS</span></td>
+                <td><button class="edit-btn">Edit</button></td>
+              </tr>
+              <tr>
+                <td>github</td>
+                <td>jerydam</td>
+                <td><span class="record-type-badge rt-text">TEXT</span></td>
+                <td><button class="edit-btn">Edit</button></td>
+              </tr>
+              <tr>
+                <td>twitter</td>
+                <td>@jerydam_</td>
+                <td><span class="record-type-badge rt-text">TEXT</span></td>
+                <td><button class="edit-btn">Edit</button></td>
+              </tr>
+              <tr>
+                <td>email</td>
+                <td>drops.faucet@gmail.com</td>
+                <td><span class="record-type-badge rt-text">TEXT</span></td>
+                <td><button class="edit-btn">Edit</button></td>
+              </tr>
+              <tr>
+                <td>url</td>
+                <td>https://faucetdrops.xyz</td>
+                <td><span class="record-type-badge rt-url">URL</span></td>
+                <td><button class="edit-btn">Edit</button></td>
+              </tr>
+              <tr>
+                <td>bio</td>
+                <td>Full-stack Web3 developer. Building on Celo &amp; BOT Chain.</td>
+                <td><span class="record-type-badge rt-text">TEXT</span></td>
+                <td><button class="edit-btn">Edit</button></td>
+              </tr>
+              <tr>
+                <td>avatar</td>
+                <td>ipfs://QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco</td>
+                <td><span class="record-type-badge rt-url">IPFS</span></td>
+                <td><button class="edit-btn">Edit</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RESOLVE TAB -->
+      <div class="dash-tab-content" id="tab-resolve">
+        <div class="panel-title">Resolve a Name</div>
+        <p class="panel-sub">Look up any .bot name to see its resolved address and public records.</p>
+        <div class="resolve-box">
+          <div class="section-title">Name Lookup</div>
+          <div class="resolve-input-wrap" style="margin-top:14px;">
+            <input type="text" id="resolve-input" placeholder="vitalik.bot">
+            <button class="btn btn-primary btn-sm" onclick="resolveName()">Resolve</button>
+          </div>
+          <div class="resolve-result" id="resolve-result">
+            <div style="color:var(--cyan);margin-bottom:10px;" id="resolve-name-display"></div>
+            <div id="resolve-details"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTIVITY TAB -->
+      <div class="dash-tab-content" id="tab-activity">
+        <div class="panel-title">Activity</div>
+        <p class="panel-sub">On-chain history for jerydam.bot</p>
+        <div class="activity-list">
+          <div class="activity-item">
+            <div class="act-dot green"></div>
+            <div class="act-content">
+              <div class="act-action">Registered <strong>jerydam.bot</strong> for 1 year</div>
+              <div class="act-time">Oct 31, 2026 · <a href="#" class="act-tx">0xabc...123 ↗</a></div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="act-dot blue"></div>
+            <div class="act-content">
+              <div class="act-action">Set record <code style="color:var(--cyan)">github</code> → <code>jerydam</code></div>
+              <div class="act-time">Oct 31, 2026 · <a href="#" class="act-tx">0xdef...456 ↗</a></div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="act-dot blue"></div>
+            <div class="act-content">
+              <div class="act-action">Set record <code style="color:var(--cyan)">eth.addr</code> → <code>0x742d...8A4f</code></div>
+              <div class="act-time">Oct 31, 2026 · <a href="#" class="act-tx">0x789...def ↗</a></div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="act-dot blue"></div>
+            <div class="act-content">
+              <div class="act-action">Issued subname <strong>dev.jerydam.bot</strong></div>
+              <div class="act-time">Oct 31, 2026 · <a href="#" class="act-tx">0xfed...321 ↗</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     REGISTER MODAL
+════════════════════════════════════ -->
+<div class="modal-overlay" id="register-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Register your .bot name</div>
+      <button class="modal-close" onclick="closeModal('register-modal')">×</button>
+    </div>
+
+    <!-- Step tabs -->
+    <div class="register-steps">
+      <div class="rstep active" id="rstab-1">Search</div>
+      <div class="rstep" id="rstab-2">Details</div>
+      <div class="rstep" id="rstab-3">Confirm</div>
+    </div>
+
+    <!-- Step 1: Name -->
+    <div class="step-panel active" id="rspanel-1">
+      <div class="field">
+        <label>Your name</label>
+        <div class="name-input-wrap">
+          <input type="text" id="reg-name" placeholder="yourname" oninput="updateRegPreview(this.value)">
+          <div class="name-suffix-fixed">.bot</div>
+        </div>
+      </div>
+      <div style="background:var(--slate);border-radius:8px;padding:16px;margin-bottom:20px;">
+        <div style="font-family:'Space Mono',monospace;font-size:.8rem;color:var(--muted);margin-bottom:6px;">PREVIEW</div>
+        <div id="reg-preview" style="font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:700;">
+          <span id="reg-name-preview" style="color:var(--text)">yourname</span><span style="background:linear-gradient(135deg,var(--blue),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent">.bot</span>
+        </div>
+        <div id="reg-avail" style="font-size:.8rem;color:var(--muted);margin-top:6px;font-family:'Space Mono',monospace;">Type a name to check availability</div>
+        <div id="reg-price-preview" style="font-size:.8rem;color:var(--cyan);margin-top:4px;font-family:'Space Mono',monospace;"></div>
+      </div>
+      <div class="field">
+        <label>Duration</label>
+        <select id="reg-duration">
+          <option value="1">1 year — 5 BOT</option>
+          <option value="2">2 years — 9 BOT</option>
+          <option value="5">5 years — 20 BOT</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="goRegStep(2)">Continue</button>
+    </div>
+
+    <!-- Step 2: Profile data -->
+    <div class="step-panel" id="rspanel-2">
+      <p style="color:var(--muted);font-size:.85rem;margin-bottom:20px;">Set your initial onchain records. All fields optional — you can update them anytime.</p>
+      <div class="field">
+        <label>Wallet Address (resolves to this)</label>
+        <input type="text" id="reg-wallet" placeholder="0x...">
+      </div>
+      <div class="field">
+        <label>Twitter handle</label>
+        <input type="text" id="reg-twitter" placeholder="@handle">
+      </div>
+      <div class="field">
+        <label>GitHub username</label>
+        <input type="text" id="reg-github" placeholder="username">
+      </div>
+      <div class="field">
+        <label>Bio</label>
+        <textarea id="reg-bio" placeholder="A short description..."></textarea>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-ghost" style="flex:1" onclick="goRegStep(1)">Back</button>
+        <button class="btn btn-primary" style="flex:2" onclick="goRegStep(3)">Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Confirm -->
+    <div class="step-panel" id="rspanel-3">
+      <div style="background:var(--slate);border-radius:10px;padding:20px;margin-bottom:20px;">
+        <div style="font-family:'Space Mono',monospace;font-size:.72rem;color:var(--muted);margin-bottom:12px;">REGISTRATION SUMMARY</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="flex-row" style="justify-content:space-between;">
+            <span class="text-muted" style="font-size:.85rem;">Name</span>
+            <span class="mono" style="color:var(--cyan);font-size:.88rem;" id="confirm-name">yourname.bot</span>
+          </div>
+          <div class="flex-row" style="justify-content:space-between;">
+            <span class="text-muted" style="font-size:.85rem;">Duration</span>
+            <span class="mono" style="font-size:.88rem;" id="confirm-duration">1 year</span>
+          </div>
+          <div class="flex-row" style="justify-content:space-between;">
+            <span class="text-muted" style="font-size:.85rem;">Fee</span>
+            <span class="mono" style="color:var(--text);font-size:.88rem;" id="confirm-fee">5 BOT</span>
+          </div>
+          <div class="flex-row" style="justify-content:space-between;border-top:1px solid var(--border);padding-top:10px;">
+            <span class="text-muted" style="font-size:.85rem;">Records to set</span>
+            <span class="mono" style="font-size:.88rem;" id="confirm-records">0</span>
+          </div>
+        </div>
+      </div>
+      <p style="color:var(--muted);font-size:.8rem;margin-bottom:20px;line-height:1.6;">
+        By registering, a commit hash is first submitted to prevent front-running. After a 60-second wait, you finalize registration. Both steps require wallet signatures.
+      </p>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-ghost" style="flex:1" onclick="goRegStep(2)">Back</button>
+        <button class="btn btn-primary" style="flex:2" onclick="submitRegistration()">
+          🔐 Register Now
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD RECORD MODAL -->
+<div class="modal-overlay" id="add-record-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Record</div>
+      <button class="modal-close" onclick="closeModal('add-record-modal')">×</button>
+    </div>
+    <div class="field">
+      <label>Key</label>
+      <input type="text" id="new-record-key" placeholder="e.g. telegram">
+    </div>
+    <div class="field">
+      <label>Value</label>
+      <input type="text" id="new-record-value" placeholder="e.g. @username">
+    </div>
+    <div class="field">
+      <label>Type</label>
+      <select id="new-record-type">
+        <option value="text">Text</option>
+        <option value="address">Address</option>
+        <option value="url">URL / IPFS</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="addRecord()">Save Record Onchain</button>
+  </div>
+</div>
+
+<!-- ══ RENEW MODAL ══ -->
+<div class="modal-overlay" id="renew-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Renew Name</div>
+      <button class="modal-close" onclick="closeModal('renew-modal')">×</button>
+    </div>
+    <div class="info-box">
+      Renewing extends your lease from the current expiry date. You can renew at any time, even early.
+    </div>
+    <p style="color:var(--muted);font-size:.82rem;margin-bottom:14px;font-family:'Space Mono',monospace;">
+      Current expiry: <strong style="color:var(--text)">Oct 31, 2027</strong>
+    </p>
+    <p style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:.9rem;margin-bottom:12px;">Select duration</p>
+    <div class="dur-pills">
+      <div class="dur-pill selected" onclick="selectDuration(this,1)">
+        1 year<span class="price" id="renew-price-1">…</span>
+      </div>
+      <div class="dur-pill" onclick="selectDuration(this,2)">
+        2 years<span class="price" id="renew-price-2">…</span>
+      </div>
+      <div class="dur-pill" onclick="selectDuration(this,5)">
+        5 years<span class="price" id="renew-price-5">…</span>
+      </div>
+    </div>
+    <div class="price-bar">
+      <div class="price-row">
+        <span class="label">Name</span>
+        <span class="val" id="renew-modal-name">jerydam.bot</span>
+      </div>
+      <div class="price-row">
+        <span class="label">Duration</span>
+        <span class="val" id="renew-dur-display">1 year</span>
+      </div>
+      <div class="price-row">
+        <span class="label">New expiry</span>
+        <span class="val" id="renew-new-expiry" style="color:var(--green)">Oct 31, 2028</span>
+      </div>
+      <div class="price-row total">
+        <span class="label">Total fee</span>
+        <span class="val" id="renew-fee-display">5 BOT</span>
+      </div>
+    </div>
+    <div id="renew-tx-state" style="display:none;">
+      <div class="countdown-bar-wrap"><div class="countdown-bar" id="renew-bar"></div></div>
+      <div class="countdown-label" id="renew-bar-label">Sending transaction…</div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:4px;" id="renew-btn" onclick="submitRenew()">
+      Renew — 5 BOT
+    </button>
+  </div>
+</div>
+
+<!-- ══ TRANSFER MODAL ══ -->
+<div class="modal-overlay" id="transfer-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Transfer Name</div>
+      <button class="modal-close" onclick="closeModal('transfer-modal')">×</button>
+    </div>
+    <div class="warn-box">
+      <strong>Warning:</strong> Transferring your name is permanent and irreversible. The recipient gains full ownership including the ability to update records and issue subnames.
+    </div>
+    <div class="field">
+      <label>Recipient wallet address</label>
+      <input type="text" id="transfer-addr" placeholder="0x..." oninput="validateTransferAddr(this.value)">
+    </div>
+    <div id="transfer-addr-status" style="font-family:'Space Mono',monospace;font-size:.75rem;margin-top:-12px;margin-bottom:16px;"></div>
+    <div class="confirm-type-box">
+      To confirm, type <strong id="transfer-confirm-label">jerydam.bot</strong> below
+    </div>
+    <div class="field">
+      <label>Confirm name</label>
+      <input type="text" id="transfer-confirm-input" placeholder="jerydam.bot" oninput="checkTransferConfirm()">
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('transfer-modal')">Cancel</button>
+      <button class="btn btn-danger" style="flex:1" id="transfer-submit-btn" disabled onclick="submitTransfer()">
+        Transfer Ownership
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EDIT DETAILS MODAL ══ -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal" style="width:520px;">
+    <div class="modal-header">
+      <div class="modal-title">Edit Profile Details</div>
+      <button class="modal-close" onclick="closeModal('edit-modal')">×</button>
+    </div>
+    <div class="edit-tabs">
+      <button class="edit-tab active" onclick="switchEditTab('profile',this)">Profile</button>
+      <button class="edit-tab" onclick="switchEditTab('social',this)">Social Links</button>
+      <button class="edit-tab" onclick="switchEditTab('address',this)">Addresses</button>
+    </div>
+
+    <!-- Profile tab -->
+    <div class="edit-panel active" id="edit-profile">
+      <div class="field">
+        <label>Display name / alias</label>
+        <input type="text" id="edit-alias" value="Jeremiah" placeholder="Your display name">
+      </div>
+      <div class="field">
+        <label>Bio</label>
+        <textarea id="edit-bio" style="min-height:90px">Full-stack Web3 developer. Building on Celo &amp; BOT Chain.</textarea>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="edit-email" value="drops.faucet@gmail.com" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>Website</label>
+        <input type="url" id="edit-website" value="https://faucetdrops.xyz" placeholder="https://...">
+      </div>
+      <div class="field">
+        <label>Avatar (IPFS hash or URL)</label>
+        <input type="text" id="edit-avatar" value="ipfs://QmXoypizjW3WknFiJnK..." placeholder="ipfs://Qm...">
+      </div>
+    </div>
+
+    <!-- Social tab -->
+    <div class="edit-panel" id="edit-social">
+      <div class="field">
+        <label>Twitter / X handle</label>
+        <input type="text" id="edit-twitter" value="@jerydam_" placeholder="@handle">
+      </div>
+      <div class="field">
+        <label>GitHub username</label>
+        <input type="text" id="edit-github" value="jerydam" placeholder="username">
+      </div>
+      <div class="field">
+        <label>Telegram</label>
+        <input type="text" id="edit-telegram" placeholder="@username">
+      </div>
+      <div class="field">
+        <label>Discord</label>
+        <input type="text" id="edit-discord" placeholder="user#1234">
+      </div>
+      <div class="field">
+        <label>Farcaster</label>
+        <input type="text" id="edit-farcaster" placeholder="@fid or username">
+      </div>
+    </div>
+
+    <!-- Addresses tab -->
+    <div class="edit-panel" id="edit-address">
+      <div class="info-box" style="margin-bottom:16px;">
+        These addresses are stored in the resolver. When apps resolve your .bot name for a specific chain, they read from here.
+      </div>
+      <div class="field">
+        <label>BOT Chain (primary)</label>
+        <input type="text" id="edit-addr-bot" value="0x742d35Cc6634C0532925a3b844Bc454e4438f44e">
+      </div>
+      <div class="field">
+        <label>Ethereum</label>
+        <input type="text" id="edit-addr-eth" placeholder="0x...">
+      </div>
+      <div class="field">
+        <label>Celo</label>
+        <input type="text" id="edit-addr-celo" placeholder="0x...">
+      </div>
+      <div class="field">
+        <label>Bitcoin</label>
+        <input type="text" id="edit-addr-btc" placeholder="bc1q...">
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('edit-modal')">Cancel</button>
+      <button class="btn btn-primary" style="flex:2" onclick="submitEditDetails()">Save All Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.1/ethers.umd.min.js"></script>
+<script>
+'use strict';
+
+// ─────────────────────────────────────────
+//  BOT CHAIN CONFIG  (update addresses after deploy)
+// ─────────────────────────────────────────
+const BOT_CHAIN = {
+  chainId:      '0x61A8',          // 24999 decimal — BOT Chain testnet; change for mainnet
+  chainName:    'BOT Chain',
+  nativeCurrency: { name: 'BOT', symbol: 'BOT', decimals: 18 },
+  rpcUrls:      ['https://rpc.botchain.network'],   // update to real RPC
+  blockExplorerUrls: ['https://explorer.botchain.network'],
+};
+
+// ── Contract addresses (set after deploy) ──
+const REGISTRY_ADDR   = '0x0000000000000000000000000000000000000000';
+const RESOLVER_ADDR   = '0x0000000000000000000000000000000000000000';
+const REGISTRAR_ADDR  = '0x0000000000000000000000000000000000000000';
+
+// ── ABIs ──
+const REGISTRY_ABI = [
+  'function ownerOf(bytes32 node) view returns (address)',
+  'function resolver(bytes32 node) view returns (address)',
+  'function isApprovedForAll(address owner, address operator) view returns (bool)',
+  'function setApprovalForAll(address operator, bool approved)',
+];
+const RESOLVER_ABI = [
+  'function addr(bytes32 node) view returns (address)',
+  'function text(bytes32 node, string key) view returns (string)',
+  'function setText(bytes32 node, string key, string value)',
+  'function setAddr(bytes32 node, address addr)',
+  'function setRecords(bytes32 node, address walletAddr, tuple(string key,string value)[] texts)',
+];
+const REGISTRAR_ABI = [
+  'function isAvailable(string label) view returns (bool)',
+  'function getPrice(string label, uint256 duration) view returns (uint256)',
+  'function getExpiry(string label) view returns (uint64)',
+  'function getOwner(string label) view returns (address)',
+  'function nameInfo(string label) view returns (address owner, uint64 expiry, bool active)',
+  'function makeCommitment(string label, address owner, bytes32 secret) pure returns (bytes32)',
+  'function commit(bytes32 commitment)',
+  'function register(string label, address owner, bytes32 secret, uint256 duration, address walletAddr, string[] textKeys, string[] textValues) payable',
+  'function renew(string label, uint256 duration) payable',
+  'function transfer(string label, address newOwner)',
+];
+
+// ─────────────────────────────────────────
+//  APP STATE
+// ─────────────────────────────────────────
+let provider, signer, account;
+let registry, resolver, registrar;
+let currentStep = 1;
+let renewDuration = 365 * 24 * 3600;   // 1 year in seconds
+let renewFeeWei = 0n;
+let userRegisteredName = null;  // the label the connected wallet owns
+let pendingCommit = null;       // { label, secret, owner, commitTimestamp }
+
+// ─────────────────────────────────────────
+//  NAMEHASH (mirrors BotNamehash.sol)
+// ─────────────────────────────────────────
+function namehash(label) {
+  const botNode = ethers.keccak256(
+    ethers.concat([
+      new Uint8Array(32),
+      ethers.keccak256(ethers.toUtf8Bytes('bot'))
+    ])
+  );
+  return ethers.keccak256(
+    ethers.concat([
+      ethers.getBytes(botNode),
+      ethers.getBytes(ethers.keccak256(ethers.toUtf8Bytes(label)))
+    ])
+  );
+}
+
+function cleanLabel(val) {
+  return val.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/\.bot$/, '');
+}
+
+function isValidLabel(label) {
+  if (!label || label.length < 3 || label.length > 64) return false;
+  if (label[0] === '-' || label[label.length-1] === '-') return false;
+  return /^[a-z0-9-]+$/.test(label);
+}
+
+function fmtAddr(addr) {
+  return addr ? addr.slice(0,6) + '…' + addr.slice(-4) : '—';
+}
+function fmtDate(ts) {
+  if (!ts || ts === 0n) return '—';
+  return new Date(Number(ts) * 1000).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
+}
+function fmtBOT(wei) {
+  return parseFloat(ethers.formatEther(wei)).toFixed(4) + ' BOT';
+}
+
+// ─────────────────────────────────────────
+//  WALLET CONNECT
+// ─────────────────────────────────────────
+async function connectWallet() {
+  if (!window.ethereum) {
+    showToast('No wallet detected. Install MetaMask or a Web3 wallet.', 'error');
+    return;
+  }
+  try {
+    provider = new ethers.BrowserProvider(window.ethereum);
+    // Request accounts
+    await provider.send('eth_requestAccounts', []);
+    signer  = await provider.getSigner();
+    account = await signer.getAddress();
+
+    // Switch / add BOT Chain
+    await ensureBotChain();
+
+    // Instantiate contracts
+    registry   = new ethers.Contract(REGISTRY_ADDR,  REGISTRY_ABI,  signer);
+    resolver   = new ethers.Contract(RESOLVER_ADDR,  RESOLVER_ABI,  signer);
+    registrar  = new ethers.Contract(REGISTRAR_ADDR, REGISTRAR_ABI, signer);
+
+    // Update nav button
+    document.getElementById('nav-connect-btn').textContent = fmtAddr(account);
+    document.getElementById('nav-connect-btn').style.background = 'var(--slate)';
+    document.getElementById('nav-connect-btn').style.color = 'var(--cyan)';
+    document.getElementById('nav-connect-btn').style.border = '1px solid var(--border)';
+
+    // Check if this wallet owns a .bot name
+    await loadUserName();
+
+    showToast('Wallet connected: ' + fmtAddr(account), 'success');
+    goToDashboard();
+
+    // Listen for account / chain changes
+    window.ethereum.on('accountsChanged', () => location.reload());
+    window.ethereum.on('chainChanged',    () => location.reload());
+
+  } catch (err) {
+    console.error(err);
+    showToast(err.message?.slice(0,80) || 'Connection failed', 'error');
+  }
+}
+
+async function ensureBotChain() {
+  const network = await provider.getNetwork();
+  const targetId = BigInt(BOT_CHAIN.chainId);
+  if (network.chainId === targetId) return;
+  try {
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: BOT_CHAIN.chainId }],
+    });
+  } catch (switchErr) {
+    if (switchErr.code === 4902) {
+      await window.ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [BOT_CHAIN],
+      });
+    } else throw switchErr;
+  }
+  // Re-init provider/signer after switch
+  provider = new ethers.BrowserProvider(window.ethereum);
+  signer   = await provider.getSigner();
+}
+
+// ─────────────────────────────────────────
+//  LOAD USER'S REGISTERED NAME
+// ─────────────────────────────────────────
+async function loadUserName() {
+  // We scan by listening for NameRegistered events where owner == account
+  // (gas-efficient: only read what we need)
+  try {
+    const registrarRead = new ethers.Contract(REGISTRAR_ADDR, [
+      'event NameRegistered(bytes32 indexed node, string label, address indexed owner, uint64 expiry)',
+      ...REGISTRAR_ABI
+    ], provider);
+
+    const filter = registrarRead.filters.NameRegistered(null, null, account);
+    const logs   = await registrarRead.queryFilter(filter, -50000); // last ~50k blocks
+
+    if (logs.length === 0) {
+      renderDashboardEmpty();
+      return;
+    }
+
+    // Take the most recent
+    const latest = logs[logs.length - 1];
+    const label  = latest.args.label;
+
+    // Verify still owned
+    const info = await registrar.nameInfo(label);
+    if (info.owner.toLowerCase() !== account.toLowerCase() || !info.active) {
+      renderDashboardEmpty();
+      return;
+    }
+
+    userRegisteredName = label;
+    await renderDashboard(label, info);
+  } catch (err) {
+    console.error('loadUserName:', err);
+    renderDashboardEmpty();
+  }
+}
+
+// ─────────────────────────────────────────
+//  RENDER DASHBOARD FROM CHAIN
+// ─────────────────────────────────────────
+async function renderDashboard(label, info) {
+  const node    = namehash(label);
+  const expiry  = info.expiry;
+  const expiryDate = fmtDate(expiry);
+  const daysLeft   = Math.max(0, Math.floor((Number(expiry) - Date.now()/1000) / 86400));
+
+  // Avatar letter
+  document.getElementById('dash-avatar').textContent = label[0].toUpperCase();
+  document.getElementById('dash-name').textContent   = label + '.bot';
+  document.getElementById('dash-addr').textContent   = fmtAddr(account);
+  document.getElementById('nc-name').innerHTML       = label + '<span class="dot-bot">.bot</span>';
+  document.querySelector('.name-card-expiry').textContent =
+    `Expires ${expiryDate} · ${daysLeft} days remaining`;
+
+  // Fetch resolver records in parallel
+  const resolverAddr = await registry.resolver(node);
+  const nodeResolver = new ethers.Contract(resolverAddr || RESOLVER_ADDR, RESOLVER_ABI, provider);
+
+  const keys = ['twitter','github','email','url','bio','avatar','description'];
+  const [addrVal, ...textVals] = await Promise.allSettled([
+    nodeResolver.addr(node),
+    ...keys.map(k => nodeResolver.text(node, k))
+  ]);
+
+  const records = {};
+  keys.forEach((k, i) => {
+    records[k] = textVals[i].status === 'fulfilled' ? textVals[i].value : '';
+  });
+  const walletAddr = addrVal.status === 'fulfilled' ? addrVal.value : ethers.ZeroAddress;
+
+  // Populate primary address input
+  if (walletAddr && walletAddr !== ethers.ZeroAddress) {
+    document.getElementById('primary-addr-input').value = walletAddr;
+  }
+
+  // nc-meta
+  const recordCount = [walletAddr !== ethers.ZeroAddress, ...Object.values(records)].filter(Boolean).length;
+  document.querySelectorAll('.nc-meta-val')[0].textContent = fmtAddr(resolverAddr || RESOLVER_ADDR);
+  document.querySelectorAll('.nc-meta-val')[1].textContent = recordCount + ' set';
+
+  // Sidebar quick records
+  const pills = document.querySelectorAll('.record-pill .record-val');
+  if (pills[0]) pills[0].textContent = walletAddr !== ethers.ZeroAddress ? fmtAddr(walletAddr) : '—';
+  if (pills[1]) pills[1].textContent = records.github  || '—';
+  if (pills[2]) pills[2].textContent = records.twitter || '—';
+  if (pills[3]) {
+    pills[3].textContent = expiryDate;
+    pills[3].style.color = daysLeft < 30 ? 'var(--red)' : 'var(--green)';
+  }
+
+  // Populate records table
+  const tbody = document.getElementById('records-tbody');
+  tbody.innerHTML = '';
+  const tableRecords = [
+    { key: 'eth.addr', val: walletAddr !== ethers.ZeroAddress ? walletAddr : '', type: 'rt-addr', typeLabel: 'ADDRESS' },
+    ...keys.map(k => ({
+      key: k, val: records[k], type: k === 'url' || k === 'avatar' ? 'rt-url' : 'rt-text',
+      typeLabel: k === 'url' || k === 'avatar' ? 'URL' : 'TEXT'
+    }))
+  ].filter(r => r.val);
+
+  tableRecords.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.key}</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${r.val}</td><td><span class="record-type-badge ${r.type}">${r.typeLabel}</span></td><td><button class="edit-btn" onclick="openEditRecord('${r.key}','${r.val.replace(/'/g,"\\'")}')">Edit</button></td>`;
+    tbody.appendChild(tr);
+  });
+
+  // Pre-fill edit modal
+  document.getElementById('edit-twitter').value = records.twitter || '';
+  document.getElementById('edit-github').value  = records.github  || '';
+  document.getElementById('edit-email').value   = records.email   || '';
+  document.getElementById('edit-website').value = records.url     || '';
+  document.getElementById('edit-avatar').value  = records.avatar  || '';
+  document.getElementById('edit-bio').value     = records.bio     || records.description || '';
+  document.getElementById('edit-addr-bot').value = walletAddr !== ethers.ZeroAddress ? walletAddr : '';
+
+  // Activity tab — fetch recent events
+  await loadActivity(label);
+
+  // Renew modal expiry
+  document.getElementById('renew-modal-name').textContent = label + '.bot';
+  document.querySelector('#renew-modal p').innerHTML =
+    `Current expiry: <strong style="color:var(--text)">${expiryDate}</strong>`;
+}
+
+async function renderDashboardEmpty() {
+  document.getElementById('dash-avatar').textContent = '?';
+  document.getElementById('dash-name').textContent   = 'No name registered';
+  document.getElementById('dash-addr').textContent   = fmtAddr(account);
+  document.getElementById('nc-name').innerHTML       = '<span style="color:var(--muted)">No name yet</span>';
+  document.querySelector('.name-card-expiry').textContent = 'Register a .bot name to get started';
+  document.getElementById('records-tbody').innerHTML =
+    '<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:24px">No name registered</td></tr>';
+}
+
+// ─────────────────────────────────────────
+//  ACTIVITY
+// ─────────────────────────────────────────
+async function loadActivity(label) {
+  try {
+    const node = namehash(label);
+    const regContract = new ethers.Contract(REGISTRAR_ADDR, [
+      'event NameRegistered(bytes32 indexed node, string label, address indexed owner, uint64 expiry)',
+      'event NameRenewed(bytes32 indexed node, uint64 newExpiry)',
+      'event NameTransferred(bytes32 indexed node, address indexed newOwner)',
+    ], provider);
+    const resolverContract = new ethers.Contract(RESOLVER_ADDR, [
+      'event TextChanged(bytes32 indexed node, string indexed key, string value)',
+      'event AddrChanged(bytes32 indexed node, address addr)',
+    ], provider);
+
+    const [regLogs, renewLogs, transferLogs, textLogs, addrLogs] = await Promise.all([
+      regContract.queryFilter(regContract.filters.NameRegistered(node), -50000),
+      regContract.queryFilter(regContract.filters.NameRenewed(node), -50000),
+      regContract.queryFilter(regContract.filters.NameTransferred(node), -50000),
+      resolverContract.queryFilter(resolverContract.filters.TextChanged(node), -50000),
+      resolverContract.queryFilter(resolverContract.filters.AddrChanged(node), -50000),
+    ]);
+
+    const events = [
+      ...regLogs.map(l => ({ type:'register', tx: l.transactionHash, block: l.blockNumber, label, expiry: l.args.expiry })),
+      ...renewLogs.map(l => ({ type:'renew', tx: l.transactionHash, block: l.blockNumber, expiry: l.args.newExpiry })),
+      ...transferLogs.map(l => ({ type:'transfer', tx: l.transactionHash, block: l.blockNumber, to: l.args.newOwner })),
+      ...textLogs.map(l => ({ type:'text', tx: l.transactionHash, block: l.blockNumber, key: l.args.key, val: l.args.value })),
+      ...addrLogs.map(l => ({ type:'addr', tx: l.transactionHash, block: l.blockNumber, addr: l.args.addr })),
+    ].sort((a,b) => b.block - a.block).slice(0, 20);
+
+    const list = document.querySelector('.activity-list');
+    if (events.length === 0) {
+      list.innerHTML = '<div style="color:var(--muted);padding:24px 0;font-size:.88rem;">No onchain activity found yet.</div>';
+      return;
+    }
+    list.innerHTML = events.map(e => {
+      let dot = 'blue', action = '';
+      const txUrl = `${BOT_CHAIN.blockExplorerUrls[0]}/tx/${e.tx}`;
+      if (e.type==='register') { dot='green'; action=`Registered <strong>${label}.bot</strong> · expires ${fmtDate(e.expiry)}`; }
+      else if (e.type==='renew') { dot='green'; action=`Renewed <strong>${label}.bot</strong> · new expiry ${fmtDate(e.expiry)}`; }
+      else if (e.type==='transfer') { dot='red'; action=`Transferred to <strong>${fmtAddr(e.to)}</strong>`; }
+      else if (e.type==='text') { dot='blue'; action=`Set record <code style="color:var(--cyan)">${e.key}</code> → <code>${e.val.slice(0,30)}</code>`; }
+      else if (e.type==='addr') { dot='blue'; action=`Set address → <code>${fmtAddr(e.addr)}</code>`; }
+      return `<div class="activity-item">
+        <div class="act-dot ${dot}"></div>
+        <div class="act-content">
+          <div class="act-action">${action}</div>
+          <div class="act-time">Block ${e.block} · <a href="${txUrl}" target="_blank" class="act-tx">${e.tx.slice(0,10)}… ↗</a></div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    console.error('loadActivity:', err);
+  }
+}
+
+// ─────────────────────────────────────────
+//  PAGE SWITCHING
+// ─────────────────────────────────────────
+function showLanding() {
+  document.getElementById('landing').classList.add('active');
+  document.getElementById('dashboard').classList.remove('active');
+}
+function goToDashboard() {
+  document.getElementById('landing').classList.remove('active');
+  document.getElementById('dashboard').classList.add('active');
+}
+
+// ─────────────────────────────────────────
+//  NAME AVAILABILITY CHECK
+// ─────────────────────────────────────────
+let searchTimeout;
+function checkName(val) {
+  clearTimeout(searchTimeout);
+  const res = document.getElementById('search-result');
+  const label = cleanLabel(val);
+  if (!label || label.length < 2) { res.innerHTML = ''; return; }
+  res.innerHTML = `<span style="color:var(--muted)">Checking availability…</span>`;
+  searchTimeout = setTimeout(() => doCheckName(label, res), 400);
+}
+
+async function doCheckName(label, res) {
+  if (!isValidLabel(label)) {
+    res.innerHTML = `<span class="taken">✗ Invalid name (3–64 chars, a-z 0-9 hyphen only)</span>`;
+    return;
+  }
+  try {
+    if (!provider) provider = new ethers.JsonRpcProvider(BOT_CHAIN.rpcUrls[0]);
+    const reg = new ethers.Contract(REGISTRAR_ADDR, REGISTRAR_ABI, provider);
+    const available = await reg.isAvailable(label);
+    if (available) {
+      const priceWei = await reg.getPrice(label, BigInt(365 * 24 * 3600));
+      res.innerHTML = `<span class="available">✓ ${label}.bot is available — ${fmtBOT(priceWei)}/yr
+        <a href="#" style="color:var(--cyan);margin-left:12px;" onclick="openRegisterWithName('${label}')">Register →</a></span>`;
+    } else {
+      const info = await reg.nameInfo(label);
+      res.innerHTML = `<span class="taken">✗ ${label}.bot is taken · expires ${fmtDate(info.expiry)}
+        <a href="#" style="color:var(--cyan);margin-left:12px;" onclick="openResolveForName('${label}')">Resolve ↗</a></span>`;
+    }
+  } catch (err) {
+    res.innerHTML = `<span style="color:var(--muted)">Could not reach BOT Chain — check RPC</span>`;
+    console.error(err);
+  }
+}
+
+// ─────────────────────────────────────────
+//  REGISTER MODAL
+// ─────────────────────────────────────────
+function openRegister() {
+  if (!account) { connectWallet(); return; }
+  document.getElementById('register-modal').classList.add('open');
+  goRegStep(1);
+}
+function openRegisterWithName(name) {
+  document.getElementById('reg-name').value = name;
+  updateRegPreview(name);
+  openRegister();
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function updateRegPreview(val) {
+  const label = cleanLabel(val);
+  document.getElementById('reg-name-preview').textContent = label || 'yourname';
+  const avail = document.getElementById('reg-avail');
+  if (!label || label.length < 3) {
+    avail.textContent = 'Minimum 3 characters';
+    avail.style.color = 'var(--muted)';
+    return;
+  }
+  if (!isValidLabel(label)) {
+    avail.textContent = '✗ Only lowercase letters, numbers, hyphens';
+    avail.style.color = 'var(--red)';
+    return;
+  }
+  avail.textContent = 'Checking…';
+  avail.style.color = 'var(--muted)';
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(async () => {
+    try {
+      if (!provider) provider = new ethers.JsonRpcProvider(BOT_CHAIN.rpcUrls[0]);
+      const reg = new ethers.Contract(REGISTRAR_ADDR, REGISTRAR_ABI, provider);
+      const ok = await reg.isAvailable(label);
+      avail.textContent = ok ? '✓ Available' : '✗ Already taken';
+      avail.style.color = ok ? 'var(--green)' : 'var(--red)';
+      if (ok) {
+        const durEl = document.getElementById('reg-duration');
+        const durSecs = BigInt(parseInt(durEl.value) * 365 * 24 * 3600);
+        const price = await reg.getPrice(label, durSecs);
+        document.getElementById('reg-price-preview').textContent = fmtBOT(price);
+      }
+    } catch { avail.textContent = 'RPC error'; avail.style.color = 'var(--red)'; }
+  }, 500);
+}
+
+async function goRegStep(n) {
+  if (n > 1) {
+    const label = cleanLabel(document.getElementById('reg-name').value);
+    if (!isValidLabel(label)) { showToast('Name must be 3–64 lowercase alphanumeric chars', 'error'); return; }
+    // live availability check before advancing
+    try {
+      if (!provider) provider = new ethers.JsonRpcProvider(BOT_CHAIN.rpcUrls[0]);
+      const reg = new ethers.Contract(REGISTRAR_ADDR, REGISTRAR_ABI, provider);
+      const ok = await reg.isAvailable(label);
+      if (!ok) { showToast('This name is already taken', 'error'); return; }
+    } catch (err) { showToast('Could not verify availability: ' + err.message?.slice(0,60), 'error'); return; }
+  }
+  currentStep = n;
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById(`rstab-${i}`).classList.remove('active','done');
+    document.getElementById(`rspanel-${i}`).classList.remove('active');
+  }
+  for (let i = 1; i < n; i++) document.getElementById(`rstab-${i}`).classList.add('done');
+  document.getElementById(`rstab-${n}`).classList.add('active');
+  document.getElementById(`rspanel-${n}`).classList.add('active');
+
+  if (n === 3) await populateConfirmStep();
+}
+
+async function populateConfirmStep() {
+  const label  = cleanLabel(document.getElementById('reg-name').value);
+  const durEl  = document.getElementById('reg-duration');
+  const durSecs = BigInt(parseInt(durEl.value) * 365 * 24 * 3600);
+  let priceWei = 0n;
+  try {
+    const reg = new ethers.Contract(REGISTRAR_ADDR, REGISTRAR_ABI, provider || new ethers.JsonRpcProvider(BOT_CHAIN.rpcUrls[0]));
+    priceWei = await reg.getPrice(label, durSecs);
+  } catch {}
+  document.getElementById('confirm-name').textContent     = label + '.bot';
+  document.getElementById('confirm-duration').textContent = durEl.options[durEl.selectedIndex].text.split('—')[0].trim();
+  document.getElementById('confirm-fee').textContent      = fmtBOT(priceWei);
+  let recs = 0;
+  ['reg-wallet','reg-twitter','reg-github','reg-bio'].forEach(id => { if (document.getElementById(id).value) recs++; });
+  document.getElementById('confirm-records').textContent  = recs;
+}
+
+async function submitRegistration() {
+  if (!signer) { showToast('Connect your wallet first', 'error'); return; }
+  const label   = cleanLabel(document.getElementById('reg-name').value);
+  const durSecs = BigInt(parseInt(document.getElementById('reg-duration').value) * 365 * 24 * 3600);
+  const walletVal = document.getElementById('reg-wallet').value.trim();
+  const twitter   = document.getElementById('reg-twitter').value.trim();
+  const github    = document.getElementById('reg-github').value.trim();
+  const bio       = document.getElementById('reg-bio').value.trim();
+
+  const walletAddr = ethers.isAddress(walletVal) ? walletVal : account;
+  const textKeys   = []; const textVals = [];
+  if (twitter) { textKeys.push('twitter'); textVals.push(twitter); }
+  if (github)  { textKeys.push('github');  textVals.push(github); }
+  if (bio)     { textKeys.push('bio');     textVals.push(bio); }
+
+  try {
+    const priceWei = await registrar.getPrice(label, durSecs);
+
+    // ── Step 1: Commit ──
+    const secret     = ethers.randomBytes(32);
+    const commitment = await registrar.makeCommitment(label, account, secret);
+    showToast('Step 1/3 — Submitting commitment…', '');
+    const commitTx = await registrar.commit(commitment);
+    showToast('Commitment tx sent. Waiting for confirmation…', '');
+    await commitTx.wait();
+    pendingCommit = { label, secret, owner: account, durSecs, walletAddr, textKeys, textVals, priceWei, commitTimestamp: Date.now() };
+
+    // ── Wait 60 seconds ──
+    showToast('Step 2/3 — Waiting 60 seconds (anti-frontrun)…', '');
+    await new Promise(r => setTimeout(r, 61000));
+
+    // ── Step 2: Register ──
+    showToast('Step 3/3 — Finalising registration…', '');
+    const regTx = await registrar.register(
+      label, account, secret, durSecs, walletAddr, textKeys, textVals,
+      { value: priceWei }
+    );
+    showToast('Registration tx sent. Waiting for confirmation…', '');
+    await regTx.wait();
+
+    pendingCommit = null;
+    showToast(`✅ ${label}.bot registered successfully!`, 'success');
+    closeModal('register-modal');
+    userRegisteredName = label;
+    await loadUserName();
+    goToDashboard();
+  } catch (err) {
+    console.error(err);
+    showToast(err.reason || err.message?.slice(0,80) || 'Transaction failed', 'error');
+  }
+}
+
+// ─────────────────────────────────────────
+//  DASHBOARD TABS
+// ─────────────────────────────────────────
+function switchTab(tab, el) {
+  document.querySelectorAll('.dash-tab-content').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  el.classList.add('active');
+}
+
+// ─────────────────────────────────────────
+//  RECORDS
+// ─────────────────────────────────────────
+function openAddRecord() {
+  document.getElementById('add-record-modal').classList.add('open');
+}
+
+async function addRecord() {
+  if (!signer || !userRegisteredName) { showToast('Connect wallet and register a name first', 'error'); return; }
+  const key  = document.getElementById('new-record-key').value.trim();
+  const val  = document.getElementById('new-record-value').value.trim();
+  if (!key || !val) { showToast('Key and value are required', 'error'); return; }
+  try {
+    const node = namehash(userRegisteredName);
+    showToast('Sending setText transaction…', '');
+    const tx = await resolver.setText(node, key, val);
+    await tx.wait();
+    const type = document.getElementById('new-record-type').value;
+    const typeMap = { text:'rt-text TEXT', address:'rt-addr ADDRESS', url:'rt-url URL' };
+    const [cls, label] = typeMap[type].split(' ');
+    const tbody = document.getElementById('records-tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${key}</td><td>${val}</td><td><span class="record-type-badge ${cls}">${label}</span></td><td><button class="edit-btn" onclick="openEditRecord('${key}','${val.replace(/'/g,"\\'")}')">Edit</button></td>`;
+    tbody.appendChild(tr);
+    closeModal('add-record-modal');
+    showToast(`✅ Record "${key}" saved onchain`, 'success');
+    document.getElementById('new-record-key').value = '';
+    document.getElementById('new-record-value').value = '';
+  } catch (err) {
+    showToast(err.reason || err.message?.slice(0,80) || 'Transaction failed', 'error');
+  }
+}
+
+function openEditRecord(key, val) {
+  // Reuse add-record modal pre-filled
+  document.getElementById('new-record-key').value   = key;
+  document.getElementById('new-record-value').value = val;
+  document.getElementById('add-record-modal').classList.add('open');
+}
+
+// ─────────────────────────────────────────
+//  RESOLVE TAB
+// ─────────────────────────────────────────
+function openResolveForName(label) {
+  goToDashboard();
+  switchTab('resolve', document.querySelector('.sidebar-nav a:nth-child(3)'));
+  document.getElementById('resolve-input').value = label + '.bot';
+  resolveName();
+}
+
+async function resolveName() {
+  const raw   = document.getElementById('resolve-input').value.trim();
+  const label = cleanLabel(raw);
+  const result      = document.getElementById('resolve-result');
+  const nameDisplay = document.getElementById('resolve-name-display');
+  const details     = document.getElementById('resolve-details');
+
+  if (!label) { showToast('Enter a name to resolve', 'error'); return; }
+  nameDisplay.textContent = 'Resolving…';
+  nameDisplay.style.color = 'var(--muted)';
+  result.classList.add('show');
+  details.innerHTML = '';
+
+  try {
+    const rpc = provider || new ethers.JsonRpcProvider(BOT_CHAIN.rpcUrls[0]);
+    const reg = new ethers.Contract(REGISTRAR_ADDR, REGISTRAR_ABI, rpc);
+    const info = await reg.nameInfo(label);
+
+    if (!info.active || info.owner === ethers.ZeroAddress) {
+      nameDisplay.textContent = label + '.bot — Not registered';
+      nameDisplay.style.color = 'var(--red)';
+      details.innerHTML = `<span style="color:var(--muted);font-size:.82rem;">This name is available for registration.</span>
+        <br><a href="#" style="color:var(--cyan);font-size:.82rem;" onclick="openRegisterWithName('${label}')">Register it →</a>`;
+      return;
+    }
+
+    nameDisplay.textContent = label + '.bot';
+    nameDisplay.style.color = 'var(--cyan)';
+
+    const node = namehash(label);
+    const regObj = new ethers.Contract(REGISTRY_ADDR, REGISTRY_ABI, rpc);
+    const resolverAddr = await regObj.resolver(node);
+    const res = new ethers.Contract(resolverAddr || RESOLVER_ADDR, RESOLVER_ABI, rpc);
+
+    const textKeys = ['twitter','github','email','url','bio','avatar'];
+    const [addrResult, ...textResults] = await Promise.allSettled([
+      res.addr(node),
+      ...textKeys.map(k => res.text(node, k))
+    ]);
+
+    const walletAddr = addrResult.status === 'fulfilled' ? addrResult.value : ethers.ZeroAddress;
+    const texts = {};
+    textKeys.forEach((k,i) => { texts[k] = textResults[i].status === 'fulfilled' ? textResults[i].value : ''; });
+
+    const rows = [
+      ['owner', info.owner],
+      ['eth.addr', walletAddr !== ethers.ZeroAddress ? walletAddr : '(not set)'],
+      ['expires', fmtDate(info.expiry)],
+      ...textKeys.filter(k => texts[k]).map(k => [k, texts[k]])
+    ];
+    details.innerHTML = `<div style="display:flex;flex-direction:column;gap:6px;">
+      ${rows.map(([k,v]) => `<div class="record-pill">
+        <span class="record-key">${k}</span>
+        <span class="record-val" style="font-size:.78rem;word-break:break-all">${v}</span>
+      </div>`).join('')}
+    </div>`;
+  } catch (err) {
+    nameDisplay.textContent = 'Error resolving name';
+    nameDisplay.style.color = 'var(--red)';
+    details.innerHTML = `<span style="color:var(--muted);font-size:.82rem;">${err.message?.slice(0,100)}</span>`;
+    console.error(err);
+  }
+}
+
+// ─────────────────────────────────────────
+//  SAVE PRIMARY ADDRESS
+// ─────────────────────────────────────────
+async function savePrimaryAddr() {
+  if (!signer || !userRegisteredName) { showToast('Connect wallet first', 'error'); return; }
+  const addrVal = document.getElementById('primary-addr-input').value.trim();
+  if (!ethers.isAddress(addrVal)) { showToast('Invalid address format', 'error'); return; }
+  try {
+    const node = namehash(userRegisteredName);
+    showToast('Sending setAddr transaction…', '');
+    const tx = await resolver.setAddr(node, addrVal);
+    await tx.wait();
+    showToast('✅ Primary address updated onchain', 'success');
+  } catch (err) {
+    showToast(err.reason || err.message?.slice(0,80) || 'Transaction failed', 'error');
+  }
+}
+
+// ─────────────────────────────────────────
+//  RENEW MODAL
+// ─────────────────────────────────────────
+const YEAR_SECS = 365 * 24 * 3600;
+
+async function openRenew() {
+  if (!signer || !userRegisteredName) { showToast('Connect wallet first', 'error'); return; }
+  renewDuration = YEAR_SECS;
+  document.getElementById('renew-tx-state').style.display = 'none';
+  document.getElementById('renew-btn').disabled = false;
+  document.querySelectorAll('.dur-pill').forEach((p,i) => p.classList.toggle('selected', i===0));
+  // Populate pill prices from chain
+  try {
+    for (const yrs of [1,2,5]) {
+      const p = await registrar.getPrice(userRegisteredName, BigInt(yrs * YEAR_SECS));
+      const el = document.getElementById(`renew-price-${yrs}`);
+      if (el) el.textContent = fmtBOT(p);
+    }
+  } catch {}
+  await updateRenewPriceBar();
+  document.getElementById('renew-modal').classList.add('open');
+}
+
+async function selectDuration(el, years) {
+  document.querySelectorAll('.dur-pill').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+  renewDuration = years * YEAR_SECS;
+  await updateRenewPriceBar();
+}
+
+async function updateRenewPriceBar() {
+  const years = renewDuration / YEAR_SECS;
+  document.getElementById('renew-dur-display').textContent = years + (years === 1 ? ' year' : ' years');
+  try {
+    renewFeeWei = await registrar.getPrice(userRegisteredName, BigInt(renewDuration));
+    document.getElementById('renew-fee-display').textContent = fmtBOT(renewFeeWei);
+    document.getElementById('renew-btn').textContent = `Renew — ${fmtBOT(renewFeeWei)}`;
+    // Projected new expiry
+    const info = await registrar.nameInfo(userRegisteredName);
+    const base = Number(info.expiry) > Date.now()/1000 ? Number(info.expiry) : Date.now()/1000;
+    document.getElementById('renew-new-expiry').textContent = fmtDate(BigInt(Math.floor(base + renewDuration)));
+  } catch (err) {
+    document.getElementById('renew-fee-display').textContent = 'RPC error';
+    console.error(err);
+  }
+}
+
+async function submitRenew() {
+  if (!signer || !userRegisteredName) return;
+  const btn    = document.getElementById('renew-btn');
+  const txState = document.getElementById('renew-tx-state');
+  const bar    = document.getElementById('renew-bar');
+  const label  = document.getElementById('renew-bar-label');
+  btn.disabled = true;
+  txState.style.display = 'block';
+  bar.style.width = '10%';
+  label.textContent = 'Waiting for wallet signature…';
+  try {
+    bar.style.width = '30%';
+    const tx = await registrar.renew(userRegisteredName, BigInt(renewDuration), { value: renewFeeWei });
+    bar.style.width = '60%';
+    label.textContent = 'Transaction sent — awaiting confirmation…';
+    const receipt = await tx.wait();
+    bar.style.width = '100%';
+    label.textContent = `Confirmed in block ${receipt.blockNumber} ✓`;
+    setTimeout(async () => {
+      showToast(`✅ Name renewed!`, 'success');
+      closeModal('renew-modal');
+      await loadUserName();
+    }, 800);
+  } catch (err) {
+    txState.style.display = 'none';
+    btn.disabled = false;
+    btn.textContent = `Renew — ${fmtBOT(renewFeeWei)}`;
+    showToast(err.reason || err.message?.slice(0,80) || 'Transaction failed', 'error');
+  }
+}
+
+// ─────────────────────────────────────────
+//  TRANSFER MODAL
+// ─────────────────────────────────────────
+function openTransfer() {
+  if (!signer || !userRegisteredName) { showToast('Connect wallet first', 'error'); return; }
+  const currentName = userRegisteredName + '.bot';
+  document.getElementById('transfer-confirm-label').textContent = currentName;
+  document.getElementById('transfer-confirm-input').value = '';
+  document.getElementById('transfer-addr').value = '';
+  document.getElementById('transfer-addr-status').textContent = '';
+  document.getElementById('transfer-submit-btn').disabled = true;
+  document.getElementById('transfer-modal').classList.add('open');
+}
+
+function validateTransferAddr(val) {
+  const status = document.getElementById('transfer-addr-status');
+  if (!val) { status.textContent = ''; return; }
+  const isAddr = ethers.isAddress(val);
+  status.textContent = isAddr ? '✓ Valid address' : '✗ Invalid address format';
+  status.style.color = isAddr ? 'var(--green)' : 'var(--red)';
+  checkTransferConfirm();
+}
+function checkTransferConfirm() {
+  const expected = document.getElementById('transfer-confirm-label').textContent.trim();
+  const typed    = document.getElementById('transfer-confirm-input').value.trim();
+  const addrVal  = document.getElementById('transfer-addr').value.trim();
+  document.getElementById('transfer-submit-btn').disabled =
+    !(ethers.isAddress(addrVal) && typed === expected);
+}
+
+async function submitTransfer() {
+  if (!signer || !userRegisteredName) return;
+  const toAddr = document.getElementById('transfer-addr').value.trim();
+  try {
+    showToast('Sending transfer transaction…', '');
+    const tx = await registrar.transfer(userRegisteredName, toAddr);
+    await tx.wait();
+    showToast(`✅ Name transferred to ${fmtAddr(toAddr)}`, 'success');
+    closeModal('transfer-modal');
+    userRegisteredName = null;
+    renderDashboardEmpty();
+  } catch (err) {
+    showToast(err.reason || err.message?.slice(0,80) || 'Transaction failed', 'error');
+  }
+}
+
+// ─────────────────────────────────────────
+//  EDIT DETAILS MODAL
+// ─────────────────────────────────────────
+function openEdit() {
+  if (!signer || !userRegisteredName) { showToast('Connect wallet first', 'error'); return; }
+  document.getElementById('edit-modal').classList.add('open');
+  switchEditTab('profile', document.querySelector('.edit-tab'));
+}
+function switchEditTab(tab, el) {
+  document.querySelectorAll('.edit-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.edit-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('edit-' + tab).classList.add('active');
+  el.classList.add('active');
+}
+
+async function submitEditDetails() {
+  if (!signer || !userRegisteredName) return;
+  const node     = namehash(userRegisteredName);
+  const twitter  = document.getElementById('edit-twitter').value.trim();
+  const github   = document.getElementById('edit-github').value.trim();
+  const email    = document.getElementById('edit-email').value.trim();
+  const website  = document.getElementById('edit-website').value.trim();
+  const avatar   = document.getElementById('edit-avatar').value.trim();
+  const bio      = document.getElementById('edit-bio').value.trim();
+  const addrBot  = document.getElementById('edit-addr-bot').value.trim();
+
+  const textEntries = [
+    ['twitter', twitter], ['github', github], ['email', email],
+    ['url', website], ['avatar', avatar], ['bio', bio],
+  ].filter(([,v]) => v !== undefined); // send all, including empty (to clear)
+
+  try {
+    showToast('Building batch transaction…', '');
+    const textKeys = textEntries.map(([k]) => k);
+    const textVals = textEntries.map(([,v]) => v);
+    const walletAddr = ethers.isAddress(addrBot) ? addrBot : ethers.ZeroAddress;
+
+    const tx = await resolver.setRecords(node, walletAddr, textKeys.map((k,i) => ({ key:k, value:textVals[i] })));
+    showToast('Transaction sent — awaiting confirmation…', '');
+    await tx.wait();
+    showToast('✅ Profile updated onchain', 'success');
+    closeModal('edit-modal');
+    await renderDashboard(userRegisteredName, await registrar.nameInfo(userRegisteredName));
+  } catch (err) {
+    showToast(err.reason || err.message?.slice(0,80) || 'Transaction failed', 'error');
+  }
+}
+
+// ─────────────────────────────────────────
+//  TOAST
+// ─────────────────────────────────────────
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+// ─────────────────────────────────────────
+//  CLOSE ON BACKDROP
+// ─────────────────────────────────────────
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// ─────────────────────────────────────────
+//  INIT — try to reconnect silently on load
+// ─────────────────────────────────────────
+(async () => {
+  if (!window.ethereum) return;
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+    if (accounts.length > 0) {
+      provider = new ethers.BrowserProvider(window.ethereum);
+      signer   = await provider.getSigner();
+      account  = await signer.getAddress();
+      registry  = new ethers.Contract(REGISTRY_ADDR,  REGISTRY_ABI,  signer);
+      resolver  = new ethers.Contract(RESOLVER_ADDR,  RESOLVER_ABI,  signer);
+      registrar = new ethers.Contract(REGISTRAR_ADDR, REGISTRAR_ABI, signer);
+      document.getElementById('nav-connect-btn').textContent = fmtAddr(account);
+      document.getElementById('nav-connect-btn').style.cssText = 'background:var(--slate);color:var(--cyan);border:1px solid var(--border)';
+    }
+  } catch {}
+})();
+
+</script>
+</body>
+</html>
